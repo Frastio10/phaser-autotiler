@@ -50,9 +50,41 @@ export class Game extends Phaser.Scene {
         this.layer.setInteractive();
 
         let autoTiler = new AutoTiler(this.map);
-        let newtilemap = autoTiler.draw();
+        autoTiler.draw();
 
-        console.log(newtilemap);
+        const hoverOutline = this.add.graphics();
+        const scaleFactor = 2;
+
+        this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+            const hoveredTilePos = this.map.worldToTileXY(
+                pointer.worldX,
+                pointer.worldY,
+            );
+
+            if (!hoveredTilePos) return;
+
+            const { x, y } = hoveredTilePos;
+            const worldPos = this.map.tileToWorldXY(x, y);
+
+            if (!worldPos) return;
+
+            // Clear previous outline
+            hoverOutline.clear();
+
+            // Draw new outline (black border)
+            hoverOutline.lineStyle(3, 0xff9900, 1);
+            hoverOutline.setVisible(true);
+            hoverOutline.fillStyle(0xff9900, 1);
+            hoverOutline.fill();
+            hoverOutline.strokeRect(
+                worldPos.x,
+                worldPos.y,
+                tileSize * scaleFactor,
+                tileSize * scaleFactor,
+            );
+
+            hoverOutline.setDepth(999);
+        });
 
         this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
             const currentSelectedTile = this.map.worldToTileXY(
@@ -72,9 +104,6 @@ export class Game extends Phaser.Scene {
                 autoTiler.updateMap(this.map);
                 // autoTiler.updateTile(x, y);
                 autoTiler.draw();
-
-                console.log(this.map.layer.data);
-                // Re-run autotiling to update the surroundings
             }
         });
 
